@@ -38,32 +38,59 @@ const item3 = new Item({
 
 const defaultItems = [item1,item2,item3];
 
-Item.insertMany(defaultItems,function(err){
-  if(err){
-    console.log("error");
-  } else{
-    console.log("Sucsess");
-  }
-});
+
 
 app.get("/", function (req, res) {
-  const day = date.getDate();
-  res.render("lists", { listTitle: "Today", newListItems: items });
+  Item.find({}, function(err, foundItems){
+
+     if(foundItems.length === 0){
+           Item.insertMany(defaultItems,function(err){
+              if(err){
+                 console.log("error");
+              } else{
+                   console.log("Sucsess");
+                }
+             });
+             //After checking if the array is empty then it adds the
+             //items to the array and then redirects to home route
+             //that is to app.get() which now goes to the else statement
+             res.redirect("/");
+     } else{
+      res.render("lists", { listTitle: "Today", newListItems: foundItems });
+     }  
+  });
+  
 });
 app.post("/", function (req, res) {
-  const item = req.body.newItem;
-  if (req.body.list === "Work") {
-    workItems.push(item);
-    res.redirect("/work");
-  } else {
-    items.push(item);
-    res.redirect("/");
-  }
+  const itemName = req.body.newItem;
+
+  const item = new Item({
+    name: itemName,
+  });
+
+  item.save();
+
+  res.redirect("/");
+ 
+});
+
+app.post("/delete",function(req,res){
+  // const checkedItemId = req.body.checkbox;
+  // Item.findByIdAndRemove("checkedItemId",function(err){
+  //   if(err){
+  //     console.log(err);
+  //   } else{
+  //     console.log("deleted");
+  //     res.redirect("/");
+  //   }
+  // });
+  console.log(req.body);
 });
 
 app.get("/work", function (req, res) {
   res.render("lists", { listTitle: "Work List", newListItems: workItems });
 });
+
 app.listen(3000, function () {
   console.log("Server started");
 });
